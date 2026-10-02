@@ -9,3 +9,6 @@ coverage/
 
 .DS_Store
 Thumbs.db
+
+server/cookies.txt
+client/cookies.txt
