@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom"
 import Sidebar from "./sidebar"
+import ProfileMenu from "./ProfileMenu"
 
 function AppLayout() {
   return (
@@ -7,6 +8,10 @@ function AppLayout() {
       <Sidebar />
 
       <main className="main-content">
+        <header className="app-header">
+          <ProfileMenu />
+        </header>
+
         <Outlet />
       </main>
     </div>
