@@ -64,25 +64,25 @@ Unlike a basic expense tracker, SpendWise aims to turn transaction records into 
 ## 🖥️ Application Screenshots
 
 ### Dashboard
-![SpendWise Dashboard](screenshots/dashboard.png)
+![SpendWise Dashboard](screenshots/Dashboard.png)
 
 ### Transaction Management
-![SpendWise Transactions](screenshots/transactions.png)
+![SpendWise Transactions](screenshots/Transactions.png)
 
 ### Analytics
-![SpendWise Analytics](screenshots/analytics.png)
+![SpendWise Analytics](screenshots/Analytics.png)
 
 ### Insights
-![SpendWise Insights](screenshots/insights.png)
+![SpendWise Insights](screenshots/Insights.png)
 
 ### Budget Management
-![SpendWise Budgets](screenshots/budgets.png)
+![SpendWise Budgets](screenshots/Budgets.png)
 
 ### Savings Goals
-![SpendWise Goals](screenshots/goals.png)
+![SpendWise Goals](screenshots/Goals.png)
 
 ### What-If Calculator
-![SpendWise What-If Calculator](screenshots/whatif.png)
+![SpendWise What-If Calculator](screenshots/Whatif.png)
 
 <!-- Add screenshots here when available. -->
 
