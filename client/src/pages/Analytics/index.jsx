@@ -35,30 +35,32 @@ function Analytics() {
     const currentYear = now.getFullYear()
     const currentMonth = now.getMonth()
 
-    const currentMonthTransactions = transactions.filter((transaction) => {
-      const date = new Date(transaction.date)
+    const getMonthlyTransactions = (year, month) =>
+      transactions.filter((transaction) => {
+        const date = new Date(transaction.date)
 
-      return (
-        date.getFullYear() === currentYear &&
-        date.getMonth() === currentMonth
-      )
-    })
+        return (
+          date.getFullYear() === year &&
+          date.getMonth() === month
+        )
+      })
 
-    const income = currentMonthTransactions
-      .filter((transaction) => transaction.type === "income")
-      .reduce(
-        (total, transaction) =>
-          total + Number(transaction.amountInPaise || 0),
-        0
-      )
+    const getTotal = (items, type) =>
+      items
+        .filter((transaction) => transaction.type === type)
+        .reduce(
+          (total, transaction) =>
+            total + Number(transaction.amountInPaise || 0),
+          0
+        )
 
-    const expenses = currentMonthTransactions
-      .filter((transaction) => transaction.type === "expense")
-      .reduce(
-        (total, transaction) =>
-          total + Number(transaction.amountInPaise || 0),
-        0
-      )
+    const currentMonthTransactions = getMonthlyTransactions(
+      currentYear,
+      currentMonth
+    )
+
+    const income = getTotal(currentMonthTransactions, "income")
+    const expenses = getTotal(currentMonthTransactions, "expense")
 
     const categoryTotals = {}
 
@@ -82,46 +84,32 @@ function Analytics() {
       })
 
     const categoryBreakdown = Object.entries(categoryTotals)
-      .map(([name, amount]) => ({ name, amount }))
+      .map(([name, amount]) => ({
+        name,
+        amount,
+        percentage: expenses > 0 ? (amount / expenses) * 100 : 0,
+      }))
       .sort((a, b) => b.amount - a.amount)
 
     const monthlyTrends = Array.from({ length: 6 }, (_, index) => {
-      const date = new Date(currentYear, currentMonth - 5 + index, 1)
-      const year = date.getFullYear()
-      const month = date.getMonth()
+      const date = new Date(
+        currentYear,
+        currentMonth - 5 + index,
+        1
+      )
 
-      const monthTransactions = transactions.filter((transaction) => {
-        const transactionDate = new Date(transaction.date)
-
-        return (
-          transactionDate.getFullYear() === year &&
-          transactionDate.getMonth() === month
-        )
-      })
-
-      const monthIncome = monthTransactions
-        .filter((transaction) => transaction.type === "income")
-        .reduce(
-          (total, transaction) =>
-            total + Number(transaction.amountInPaise || 0),
-          0
-        )
-
-      const monthExpenses = monthTransactions
-        .filter((transaction) => transaction.type === "expense")
-        .reduce(
-          (total, transaction) =>
-            total + Number(transaction.amountInPaise || 0),
-          0
-        )
+      const monthTransactions = getMonthlyTransactions(
+        date.getFullYear(),
+        date.getMonth()
+      )
 
       return {
         label: date.toLocaleDateString("en-IN", {
           month: "short",
           year: "2-digit",
         }),
-        income: monthIncome,
-        expenses: monthExpenses,
+        income: getTotal(monthTransactions, "income"),
+        expenses: getTotal(monthTransactions, "expense"),
       }
     })
 
@@ -150,17 +138,14 @@ function Analytics() {
     ])
   )
 
-  const maxCategoryAmount = Math.max(
-    1,
-    ...analytics.categoryBreakdown.map((item) => item.amount)
-  )
-
   if (loading) {
     return (
       <section className="page">
-        <p className="page-eyebrow">Patterns</p>
+        <p className="page-eyebrow">YOUR MONEY, IN PERSPECTIVE</p>
         <h1>Analytics</h1>
-        <p>Loading your analytics...</p>
+        <p className="page-description" role="status">
+          Loading your financial overview...
+        </p>
       </section>
     )
   }
@@ -168,178 +153,263 @@ function Analytics() {
   if (error) {
     return (
       <section className="page">
-        <p className="page-eyebrow">Patterns</p>
+        <p className="page-eyebrow">YOUR MONEY, IN PERSPECTIVE</p>
         <h1>Analytics</h1>
-        <p role="alert">{error}</p>
-        <button type="button" onClick={() => window.location.reload()}>
+        <p className="page-description" role="alert">
+          {error}
+        </p>
+        <button
+          className="analytics-retry"
+          type="button"
+          onClick={() => window.location.reload()}
+        >
           Try again
         </button>
       </section>
     )
   }
 
+  const currentMonthLabel = new Date().toLocaleDateString("en-IN", {
+    month: "long",
+    year: "numeric",
+  })
+
   return (
-    <section className="page">
-      <p className="page-eyebrow">Patterns</p>
+    <section className="page analytics-page">
+      <header className="analytics-heading">
+        <div>
+          <p className="page-eyebrow">YOUR MONEY, IN PERSPECTIVE</p>
+          <h1>Analytics</h1>
+          <p className="page-description">
+            Small insights today. Better money decisions tomorrow.
+          </p>
+        </div>
 
-      <h1>Analytics</h1>
+        <div className="analytics-period">
+          <span className="analytics-period-dot" />
+          {currentMonthLabel}
+        </div>
+      </header>
 
-      <p className="page-description">
-        Understand your spending patterns over time.
-      </p>
+      <section className="analytics-section">
+        <div className="analytics-section-heading">
+          <div>
+            <p className="analytics-kicker">THE BIG PICTURE</p>
+            <h2>Monthly overview</h2>
+          </div>
+          <span className="analytics-section-caption">
+            Income and expenses
+          </span>
+        </div>
 
-      <h2>
-        Overview —{" "}
-        {new Date().toLocaleDateString("en-IN", {
-          month: "long",
-          year: "numeric",
-        })}
-      </h2>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: "16px",
-          margin: "24px 0",
-        }}
-      >
-        <article className="analytics-card">
-          <p>Total income</p>
-          <h2>{formatMoney(analytics.income)}</h2>
-        </article>
-
-        <article className="analytics-card">
-          <p>Total expenses</p>
-          <h2>{formatMoney(analytics.expenses)}</h2>
-        </article>
-
-        <article className="analytics-card">
-          <p>Net balance</p>
-          <h2>{formatMoney(analytics.balance)}</h2>
-          <p>Income minus expenses</p>
-        </article>
-      </div>
-
-      <section style={{ marginTop: "32px" }}>
-        <h2>Monthly income vs. expenses</h2>
-
-        <p className="page-description">
-          Compare your income and spending over the last six months.
-        </p>
-
-        <div
-          style={{
-            display: "grid",
-            gap: "20px",
-            marginTop: "20px",
-          }}
-        >
-          {analytics.monthlyTrends.map((month) => (
-            <div key={month.label}>
-              <strong>{month.label}</strong>
-
-              <div style={{ marginTop: "8px" }}>
-                <p style={{ margin: "4px 0" }}>
-                  Income: {formatMoney(month.income)}
-                </p>
-
-                <div
-                  style={{
-                    height: "10px",
-                    background: "#e5e7eb",
-                    borderRadius: "6px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${(month.income / maxMonthlyAmount) * 100}%`,
-                      height: "100%",
-                      background: "#16a34a",
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ marginTop: "8px" }}>
-                <p style={{ margin: "4px 0" }}>
-                  Expenses: {formatMoney(month.expenses)}
-                </p>
-
-                <div
-                  style={{
-                    height: "10px",
-                    background: "#e5e7eb",
-                    borderRadius: "6px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${(month.expenses / maxMonthlyAmount) * 100}%`,
-                      height: "100%",
-                      background: "#dc2626",
-                    }}
-                  />
-                </div>
-              </div>
+        <div className="analytics-summary-grid">
+          <article className="analytics-summary-card income-summary">
+            <div className="analytics-card-topline">
+              <span className="analytics-card-icon" aria-hidden="true">
+                ↙
+              </span>
+              <span className="analytics-card-label">Money received</span>
             </div>
+
+            <p className="analytics-card-value">
+              {formatMoney(analytics.income)}
+            </p>
+
+            <p className="analytics-card-note">
+              Total income this month
+            </p>
+          </article>
+
+          <article className="analytics-summary-card expense-summary">
+            <div className="analytics-card-topline">
+              <span className="analytics-card-icon" aria-hidden="true">
+                ↗
+              </span>
+              <span className="analytics-card-label">Money spent</span>
+            </div>
+
+            <p className="analytics-card-value">
+              {formatMoney(analytics.expenses)}
+            </p>
+
+            <p className="analytics-card-note">
+              Total expenses this month
+            </p>
+          </article>
+
+          <article className="analytics-summary-card balance-summary">
+            <div className="analytics-card-topline">
+              <span className="analytics-card-icon" aria-hidden="true">
+                ₹
+              </span>
+              <span className="analytics-card-label">Net balance</span>
+            </div>
+
+            <p className="analytics-card-value">
+              {formatMoney(analytics.balance)}
+            </p>
+
+            <p className="analytics-card-note">
+              {analytics.balance >= 0
+                ? "Income remaining after expenses"
+                : "Spending exceeded recorded income"}
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section className="analytics-panel">
+        <div className="analytics-section-heading">
+          <div>
+            <p className="analytics-kicker">OVER TIME</p>
+            <h2>Income vs. expenses</h2>
+            <p className="page-description">
+              See how money has moved over the last six months.
+            </p>
+          </div>
+        </div>
+
+        <div className="analytics-legend">
+          <span>
+            <i className="legend-dot income-dot" />
+            Income
+          </span>
+          <span>
+            <i className="legend-dot expense-dot" />
+            Expenses
+          </span>
+        </div>
+
+        <div className="analytics-month-list">
+          {analytics.monthlyTrends.map((month) => (
+            <article className="analytics-month-row" key={month.label}>
+              <div className="analytics-month-heading">
+                <strong>{month.label}</strong>
+              </div>
+
+              <div className="analytics-month-metrics">
+                <div className="analytics-month-metric">
+                  <div className="analytics-bar-label">
+                    <span>Income</span>
+                    <strong>{formatMoney(month.income)}</strong>
+                  </div>
+
+                  <div
+                    className="analytics-bar-track"
+                    role="img"
+                    aria-label={`Income: ${formatMoney(month.income)}`}
+                  >
+                    <div
+                      className="analytics-bar income-bar"
+                      style={{
+                        width: `${
+                          (month.income / maxMonthlyAmount) * 100
+                        }%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="analytics-month-metric">
+                  <div className="analytics-bar-label">
+                    <span>Expenses</span>
+                    <strong>{formatMoney(month.expenses)}</strong>
+                  </div>
+
+                  <div
+                    className="analytics-bar-track"
+                    role="img"
+                    aria-label={`Expenses: ${formatMoney(month.expenses)}`}
+                  >
+                    <div
+                      className="analytics-bar expense-bar"
+                      style={{
+                        width: `${
+                          (month.expenses / maxMonthlyAmount) * 100
+                        }%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </article>
           ))}
         </div>
 
-        <p style={{ marginTop: "16px" }}>
-          <span style={{ color: "#16a34a" }}>■</span> Income{" "}
-          &nbsp;&nbsp;
-          <span style={{ color: "#dc2626" }}>■</span> Expenses
+        <p className="analytics-chart-footnote">
+          Both bars use the same scale, making monthly amounts easier to
+          compare.
         </p>
       </section>
 
-      <section style={{ marginTop: "40px" }}>
-        <h2>Expense breakdown by category</h2>
+      <section className="analytics-panel">
+        <div className="analytics-section-heading">
+          <div>
+            <p className="analytics-kicker">KNOW YOUR HABITS</p>
+            <h2>Where your money goes</h2>
+            <p className="page-description">
+              A category-wise look at this month's expenses.
+            </p>
+          </div>
 
-        <p className="page-description">
-          See which categories account for your spending this month.
-        </p>
+          <span className="analytics-category-count">
+            {analytics.categoryBreakdown.length}{" "}
+            {analytics.categoryBreakdown.length === 1
+              ? "category"
+              : "categories"}
+          </span>
+        </div>
 
         {analytics.categoryBreakdown.length === 0 ? (
-          <p>No expense transactions recorded this month yet.</p>
-        ) : (
-          <div style={{ marginTop: "20px" }}>
-            {analytics.categoryBreakdown.map((item) => (
-              <div key={item.name} style={{ marginBottom: "20px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: "12px",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <strong>{item.name}</strong>
-                  <span>{formatMoney(item.amount)}</span>
-                </div>
-
-                <div
-                  style={{
-                    height: "12px",
-                    background: "#e5e7eb",
-                    borderRadius: "6px",
-                    overflow: "hidden",
-                    marginTop: "8px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${(item.amount / maxCategoryAmount) * 100}%`,
-                      height: "100%",
-                      background: "#6366f1",
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+          <div className="analytics-empty-state">
+            <span aria-hidden="true">◎</span>
+            <h3>Your spending story starts here</h3>
+            <p>
+              Add an expense this month to see how your spending is
+              distributed across categories.
+            </p>
           </div>
+        ) : (
+          <>
+            <div className="analytics-category-total">
+              <span>Total categorized and uncategorized spending</span>
+              <strong>{formatMoney(analytics.expenses)}</strong>
+            </div>
+
+            <div className="analytics-category-list">
+              {analytics.categoryBreakdown.map((item, index) => (
+                <article className="analytics-category-row" key={item.name}>
+                  <div className="analytics-category-heading">
+                    <div className="analytics-category-name">
+                      <span
+                        className={`analytics-category-marker marker-${index % 5}`}
+                        aria-hidden="true"
+                      />
+                      <strong>{item.name}</strong>
+                    </div>
+
+                    <div className="analytics-category-amount">
+                      <strong>{formatMoney(item.amount)}</strong>
+                      <span>{item.percentage.toFixed(1)}%</span>
+                    </div>
+                  </div>
+
+                  <div
+                    className="analytics-category-track"
+                    role="img"
+                    aria-label={`${item.name}: ${item.percentage.toFixed(
+                      1
+                    )}% of monthly expenses`}
+                  >
+                    <div
+                      className={`analytics-category-fill marker-fill-${index % 5}`}
+                      style={{ width: `${item.percentage}%` }}
+                    />
+                  </div>
+                </article>
+              ))}
+            </div>
+          </>
         )}
       </section>
     </section>
