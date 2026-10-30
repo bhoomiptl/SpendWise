@@ -67,7 +67,28 @@ Unlike a basic expense tracker, SpendWise focuses on turning transaction records
 
 ## 🖥️ Application Screenshots
 
-Screenshots of the Dashboard, Transactions, and Analytics pages will be added here.
+## 🖥️ Application Screenshots
+
+### Dashboard
+![Dashboard](./screenshots/Dashboard.png)
+
+### Analytics
+![Analytics](./screenshots/Analytics.png)
+
+### Transactions
+![Transactions](./screenshots/Transactions.png)
+
+### Budgets
+![Budgets](./screenshots/Budgets.png)
+
+### Goals
+![Goals](./screenshots/Goals.png)
+
+### Insights
+![Insights](./screenshots/Insights.png)
+
+### What-If Simulator
+![What-If](./screenshots/Whatif.png)
 
 ## ⚙️ Local Installation
 
