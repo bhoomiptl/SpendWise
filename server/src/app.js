@@ -18,9 +18,21 @@ const healthRoutes = require("./routes/health.routes");
 const app = express();
 
 // CORS configuration
+// CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://bhoomiptl.github.io",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
